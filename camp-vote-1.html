@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏕️ キャンプ場 投票 2025</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0c29; }
+  input::placeholder { color: #666; }
+  a:hover { opacity: 0.85; }
+  button:hover:not(:disabled) { filter: brightness(1.1); }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ==============================
+// 設定
+// ==============================
+const JSONBIN_API_KEY = "$2a$10$f8ifZZrFSVg5w5ehPkW6te8bEniWj9pUOOs0KwLEcoJM0OEzEkOd.";
+const JSONBIN_BIN_ID = "69c13461b7ec241ddc952beb";
+const JSONBIN_BASE = "https://api.jsonbin.io/v3";
+
+// ==============================
+// キャンプ場データ
+// ==============================
+const camps = [
+  { id:1, name:"ふもとっぱら", region:"中部", pref:"静岡県", url:"https://fumotoppara.net/", mapUrl:"https://maps.google.com/?q=35.3574,138.5593", emoji:"🗻", tagline:"富士山を独り占め", feature:"標高830mに広がる広大な原っぱ。ほぼ全サイトから富士山が一望でき、アニメ「ゆるキャン△」のロケ地としても有名。コテージ・食堂も充実。長渕剛のオールナイトライブが行われた伝説の場所。", onsen:"【場内あり】金山温泉（人工温泉・無料、15:00〜20:30）。場外は車で13分の「富士眺望の湯 ゆらり」や15分の「あさぎり温泉 風の湯」など複数あり。", supermarket:"場外スーパーは車で約30分。最寄りコンビニは約5分（薪・炭取り扱いあり）。道の駅「朝霧高原」も通り道で便利。" },
+  { id:2, name:"青川峡キャンピングパーク", region:"中部", pref:"三重県", url:"http://www.aogawa.jp/", mapUrl:"https://maps.google.com/?q=35.1459,136.4698", emoji:"🏞️", tagline:"清流と山に囲まれた高規格", feature:"青川沿いの自然豊かなロケーションで、名古屋から1時間・大阪から2時間の好アクセス。清流での川遊びが大人気。3タイプのテントサイト＋コテージ・ロッジも充実。キャンプデビューにも最適。", onsen:"車で約10分の「阿下喜温泉 あじさいの里」。毎日新鮮なお湯を張り替える清潔な温泉。チェックアウト後に立ち寄るキャンパーも多い。", supermarket:"スーパーセンターオークワいなべ店（ダイソー・ドラッグストア併設）、マックスバリュー北勢店、イオン大安店がいずれも車で10〜15分圏内。" },
+  { id:3, name:"竜洋海洋公園オートキャンプ場", region:"中部", pref:"静岡県", url:"https://ryuyo-auto.entetsuassist-dms.com/", mapUrl:"https://maps.google.com/?q=34.7265,137.8452", emoji:"🌴", tagline:"南国リゾート×海辺キャンプ", feature:"「南国リゾート」コンセプト、JAC認定五つ星。夏はプール・アスレチックも充実。天竜川と遠州灘に挟まれた釣りスポットとしても人気。キス・ハゼ・タチウオが狙える。", onsen:"【徒歩1分】隣接「しおさい竜洋」浴場（人工温泉、サウナあり、360円）。露天風呂にもヤシの木があり南国気分が続く。", supermarket:"「しおさい竜洋」売店で地元新鮮野菜が100種以上購入可能。通常スーパー・コンビニは車で5〜10分圏内。" },
+  { id:4, name:"飯地高原自然テント村", region:"中部", pref:"岐阜県", url:"https://iijitentomuracamp.localinfo.jp/", mapUrl:"https://maps.google.com/?q=35.4411,137.4636", emoji:"✨", tagline:"天空の里で満天の星空", feature:"標高600mの「天空の里」。薪ストーブ付きキャビンが大人気。グランドサイト・林間サイト・タイニーハウスなど多彩。ソロ・カップルキャンプも歓迎でアットホームな雰囲気。", onsen:"場内に温泉・シャワーなし。最寄りは車で約16kmの「花白温泉」（ラドン放射能泉）、25kmの「くしはら温泉ささゆりの湯」（絶景露天風呂）。", supermarket:"約9kmに道の駅「そばの郷らっせいみさと」。スーパーは恵那市街地まで20〜30分。キャンプ前の買い出しを強く推奨。" },
+  { id:5, name:"淡路じゃのひれアウトドアリゾート", region:"近畿", pref:"兵庫県", url:"http://www.janohire.co.jp/", mapUrl:"https://maps.google.com/?q=34.2185,134.8827", emoji:"🐬", tagline:"イルカと釣りと海キャンプ", feature:"淡路島最南端51,000㎡の複合アウトドアリゾート。海上釣り堀・ドルフィンファーム（イルカと泳げる）・乗馬・カヤック・SUP・サウナと遊び放題。ペット可コテージあり。", onsen:"場内に温泉なし（シャワーのみ）。うずしおクルーズ発着の福良港まで車10分など観光は充実。温泉は少し離れた施設を利用。", supermarket:"最寄りスーパーは「イオン南淡路店」で車で約20分。コンビニ（ローソン）は車で約10分。事前買い出しを推奨。" },
+  { id:6, name:"しあわせの村オートキャンプ場", region:"近畿", pref:"兵庫県", url:"http://www.shiawasenomura.org/stay/auto.html", mapUrl:"https://maps.google.com/?q=34.7489,135.1249", emoji:"🏡", tagline:"神戸から25分の総合リゾート", feature:"神戸・三宮から車25分の好立地。205haの総合福祉ゾーン内。全区画AC電源・流し台・水道・炉・ベンチ付き。バリアフリー対応。フィールドアスレチック・ポニー乗馬・屋内プール・テニスコートも完備。", onsen:"【園内あり】村内に温泉（ジャングル風呂）。寝湯・打たせ湯・サウナなど多様なお風呂が楽しめる。キャンプと温泉をセットで満喫できる理想的な環境。", supermarket:"村内にデイリーヤマザキ・しあわせマルシェあり（野菜・惣菜も購入可）。周辺にも複数のスーパーがあり買い物に困らない。" },
+  { id:7, name:"キャンプリゾート森のひととき", region:"近畿", pref:"兵庫県", url:"http://mori-hitotoki.com/", mapUrl:"https://maps.google.com/?q=35.1643,135.0672", emoji:"🌲", tagline:"丹波の森と湖畔に癒される", feature:"神戸市内から1時間の丹波市にある緑豊かなキャンプリゾート。湖畔サイト（2024年新設）・リバーサイト・コテージ・ホテル仕様の部屋まで多彩。レンタル・BBQメニュー・朝食バイキングありで手ぶらOK。カヤック体験も。", onsen:"管理棟内に共同浴場あり。周辺の温泉施設は選択肢が限られるため、場内浴場が主な利用場所になる。", supermarket:"春日ICを降りてすぐの「ココモ春日店」が車で約10分（日本海産の鮮魚が毎日入荷！）。向かいにドラッグストアもあり。" },
+  { id:8, name:"ハピろー！の森 京都", region:"近畿", pref:"京都府", url:"https://www.forest-hiyoshi.jp/", mapUrl:"https://maps.google.com/?q=35.1654,135.4558", emoji:"🍃", tagline:"東京ドーム27個分の京都の森", feature:"128haの広大な京都府立府民の森。日吉ダム湖畔のロケーションで散策路は総延長7,260m。40区画のオートサイト・コテージあり。7,000㎡のドッグラン・ツリークライミング・ディスクゴルフ・コーヒー焙煎体験なども充実。", onsen:"車で約5分の「道の駅 スプリングスひよし」に温泉・プール・レストランあり。キャンプとのセット利用が人気。", supermarket:"最寄りスーパー「フレッシュバザール 園部店」まで直線約10km。コンビニも約10km。国道9号線沿いで事前購入を推奨。" },
+  { id:9, name:"大佐山オートキャンプ場", region:"中国", pref:"岡山県", url:"https://www.0380.jp/", mapUrl:"https://maps.google.com/?q=34.9862,133.4567", emoji:"🪂", tagline:"サイト日本最大級！アクティビティ天国", feature:"中国道・大佐SAスマートICから10分。サイト面積は日本トップクラス（10m×10m）でほぼ全区画にAC電源＋流し台付き。カヌー・パラグライダー・シャワートレッキング・洞窟探検など体験が豊富。", onsen:"場内近くに温泉あり（7〜9月のみ）。やや遠いが「湯原温泉 砂湯」はダム下流の川底から湧き出る天然大露天風呂で一見の価値あり（混浴、湯浴み着レンタルあり）。", supermarket:"車で約5分に地元スーパー「大佐ボンエース」あり（食料品・酒類一通り揃う）。大型スーパーは新見市街地まで移動が必要。" },
+  { id:10, name:"備北オートビレッジ", region:"中国", pref:"広島県", url:"https://www.bihokupark.jp/village/autoVillage_top.php", mapUrl:"https://maps.google.com/?q=34.8862,133.0198", emoji:"🏅", tagline:"中国地方唯一の五つ星キャンプ場", feature:"国営備北丘陵公園内のJAC「5つ星」認定、中国地方唯一。100㎡の広々サイト36区画＋コテージ19棟・トレーラーハウス常設。水遊び池・林間アスレチック39種・サイクリングコース・ピザ釜体験あり。土曜夜限定のキャンプファイヤーも人気。", onsen:"管理センター内にお風呂あり（300円）。GW・夏休み以外は毎週土曜のみ営業。ゆっくり温泉なら近隣「桜花の郷 ラ・フォーレ庄原」（露天風呂・サウナなど16種）がおすすめ。", supermarket:"最寄りICから近く、周辺に大型スーパー複数あり。買い出しには不自由しない立地。" },
+];
+
+const MAX_VOTES = 4;
+const BIN_ID_KEY = "camp_vote_bin_id";
+
+// ==============================
+// JSONBin API
+// ==============================
+async function loadVotes() {
+  const res = await fetch(`${JSONBIN_BASE}/b/${JSONBIN_BIN_ID}/latest`, {
+    headers: {
+      "X-Master-Key": JSONBIN_API_KEY,
+      "X-Access-Key": JSONBIN_API_KEY,
+    },
+  });
+  const data = await res.json();
+  return data.record.votes || [];
+}
+
+async function saveVotes(allVotes) {
+  await fetch(`${JSONBIN_BASE}/b/${JSONBIN_BIN_ID}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Master-Key": JSONBIN_API_KEY,
+      "X-Access-Key": JSONBIN_API_KEY,
+    },
+    body: JSON.stringify({ votes: allVotes }),
+  });
+}
+
+// ==============================
+// ページ判定
+// ==============================
+function getPage() {
+  try {
+    return new URL(window.location.href).searchParams.get("view") === "results" ? "results" : "vote";
+  } catch { return "vote"; }
+}
+
+// ==============================
+// 共通スタイル
+// ==============================
+const S = {
+  page: { minHeight:"100vh", fontFamily:"'Georgia', serif", color:"#f0ede8" },
+  header: { background:"rgba(255,255,255,0.03)", borderBottom:"1px solid rgba(255,255,255,0.08)", padding:"24px 20px 18px", textAlign:"center", position:"sticky", top:0, zIndex:100, backdropFilter:"blur(20px)" },
+  label: { fontSize:"10px", letterSpacing:"6px", color:"#9b8ea0", marginBottom:"5px", textTransform:"uppercase" },
+  h1vote: { fontSize:"clamp(20px,5vw,30px)", fontWeight:"normal", margin:"0 0 5px", background:"linear-gradient(135deg,#fff 0%,#c9b8e8 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" },
+  h1result: { fontSize:"clamp(20px,5vw,30px)", fontWeight:"normal", margin:"0 0 10px", background:"linear-gradient(135deg,#6ee7b7 0%,#3b82f6 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" },
+  resultLink: { display:"inline-block", fontSize:"11px", color:"#6ee7b7", border:"1px solid rgba(110,231,183,0.35)", borderRadius:"20px", padding:"4px 14px", textDecoration:"none", marginBottom:"12px" },
+  backLink: { fontSize:"11px", color:"#a78bfa", border:"1px solid rgba(167,139,250,0.3)", borderRadius:"20px", padding:"4px 13px", textDecoration:"none" },
+  divider: { display:"flex", alignItems:"center", gap:"10px", marginBottom:"10px" },
+  divLine: (dir) => ({ height:"1px", flex:1, background:`linear-gradient(${dir}, transparent, rgba(255,255,255,0.14))` }),
+  regionLabel: { fontSize:"10px", letterSpacing:"4px", color:"#9b8ea0", textTransform:"uppercase" },
+};
+
+// ==============================
+// 投票ページ
+// ==============================
+function VotePage() {
+  const [votes, setVotes] = React.useState([]);
+  const [submitted, setSubmitted] = React.useState(false);
+  const [expandedId, setExpandedId] = React.useState(null);
+  const [activeTab, setActiveTab] = React.useState({});
+  const [saving, setSaving] = React.useState(false);
+  const [userName, setUserName] = React.useState("");
+  const [nameError, setNameError] = React.useState("");
+
+  const toggleVote = (id) => {
+    if (submitted) return;
+    setVotes(p => p.includes(id) ? p.filter(v=>v!==id) : p.length < MAX_VOTES ? [...p,id] : p);
+  };
+  const getTab = (id) => activeTab[id] || "feature";
+  const setTab = (id, tab) => setActiveTab(p => ({...p,[id]:tab}));
+
+  const handleSubmit = async () => {
+    if (!userName.trim()) { setNameError("お名前を入力してください"); return; }
+    if (votes.length !== MAX_VOTES) return;
+    setSaving(true);
+    try {
+      const allVotes = await loadVotes();
+      const filtered = allVotes.filter(v => v.name !== userName.trim());
+      filtered.push({ name: userName.trim(), votes, ts: Date.now() });
+      await saveVotes(filtered);
+      setSubmitted(true);
+    } catch(e) { console.error(e); alert("保存に失敗しました。再度お試しください。"); }
+    setSaving(false);
+  };
+
+  const votedCamps = camps.filter(c => votes.includes(c.id));
+
+  return (
+    <div style={{...S.page, background:"linear-gradient(150deg,#0f0c29 0%,#1c1a3a 60%,#0f0c29 100%)"}}>
+      {/* Header */}
+      <div style={S.header}>
+        <div style={S.label}>CAMP SELECTION 2025</div>
+        <h1 style={S.h1vote}>🏕️ キャンプ場 投票</h1>
+        <p style={{margin:"0 0 10px",color:"#9b8ea0",fontSize:"12px"}}>行きたいキャンプ場を4か所選んで投票してください</p>
+        <a href="?view=results" style={S.resultLink}>📊 みんなの投票結果を見る →</a>
+        <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:"7px",flexWrap:"wrap"}}>
+          {[1,2,3,4].map(n => (
+            <div key={n} style={{width:"32px",height:"32px",borderRadius:"50%",background:votes.length>=n?"linear-gradient(135deg,#a78bfa,#ec4899)":"rgba(255,255,255,0.08)",border:`2px solid ${votes.length>=n?"#a78bfa":"rgba(255,255,255,0.15)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:"bold",color:votes.length>=n?"#fff":"#555",transition:"all 0.3s"}}>
+              {votes.length>=n?"✓":n}
+            </div>
+          ))}
+          <span style={{color:"#9b8ea0",fontSize:"12px",marginLeft:"5px"}}>{votes.length} / {MAX_VOTES} 票</span>
+        </div>
+      </div>
+
+      <div style={{maxWidth:"800px",margin:"0 auto",padding:"22px 14px 140px"}}>
+        {/* 完了バナー */}
+        {submitted && (
+          <div style={{background:"linear-gradient(135deg,rgba(167,139,250,0.12),rgba(110,231,183,0.08))",border:"1px solid rgba(167,139,250,0.45)",borderRadius:"16px",padding:"22px",marginBottom:"26px",textAlign:"center"}}>
+            <div style={{fontSize:"26px",marginBottom:"6px"}}>🎉</div>
+            <div style={{fontSize:"16px",fontWeight:"bold",marginBottom:"4px"}}>投票完了！{userName} さんの選んだ4か所</div>
+            <div style={{fontSize:"11px",color:"#9b8ea0",marginBottom:"14px"}}>結果ページで集計が確認できます</div>
+            <div style={{display:"flex",gap:"8px",flexWrap:"wrap",justifyContent:"center",marginBottom:"14px"}}>
+              {votedCamps.map(c=>(
+                <div key={c.id} style={{background:"rgba(255,255,255,0.09)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"10px",padding:"7px 12px",fontSize:"12px"}}>{c.emoji} {c.name}</div>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:"10px",justifyContent:"center",flexWrap:"wrap"}}>
+              <a href="?view=results" style={{display:"inline-block",background:"linear-gradient(135deg,#6ee7b7,#3b82f6)",borderRadius:"10px",padding:"9px 22px",color:"#0f0c29",fontSize:"13px",fontWeight:"bold",textDecoration:"none"}}>📊 結果を確認する</a>
+              <button onClick={()=>{setVotes([]);setSubmitted(false);setUserName("");setNameError("");}} style={{background:"transparent",border:"1px solid rgba(255,255,255,0.22)",color:"#c4b5fd",borderRadius:"10px",padding:"9px 18px",cursor:"pointer",fontSize:"13px"}}>やり直す</button>
+            </div>
+          </div>
+        )}
+
+        {/* キャンプ場リスト */}
+        {["中部","近畿","中国"].map(region => (
+          <div key={region} style={{marginBottom:"26px"}}>
+            <div style={S.divider}>
+              <div style={S.divLine("90deg")}/>
+              <span style={S.regionLabel}>{region}地方</span>
+              <div style={S.divLine("270deg")}/>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:"9px"}}>
+              {camps.filter(c=>c.region===region).map(camp=>{
+                const isVoted = votes.includes(camp.id);
+                const isExpanded = expandedId === camp.id;
+                const isDisabled = !isVoted && votes.length >= MAX_VOTES && !submitted;
+                const tab = getTab(camp.id);
+                return (
+                  <div key={camp.id} style={{borderRadius:"13px",border:isVoted?"2px solid rgba(167,139,250,0.65)":"1px solid rgba(255,255,255,0.08)",background:isVoted?"rgba(167,139,250,0.09)":"rgba(255,255,255,0.03)",overflow:"hidden",transition:"all 0.3s",opacity:isDisabled?0.38:1}}>
+                    <div style={{display:"flex",alignItems:"stretch"}}>
+                      <button onClick={()=>toggleVote(camp.id)} disabled={isDisabled||submitted} style={{width:"50px",minWidth:"50px",background:isVoted?"linear-gradient(135deg,#a78bfa,#ec4899)":"rgba(255,255,255,0.04)",border:"none",borderRight:"1px solid rgba(255,255,255,0.07)",cursor:isDisabled||submitted?"not-allowed":"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"3px",fontSize:"17px",transition:"all 0.2s",padding:"12px 0"}}>
+                        <span>{isVoted?"✓":"○"}</span>
+                        {isVoted&&<span style={{fontSize:"7px",color:"rgba(255,255,255,0.75)"}}>投票済</span>}
+                      </button>
+                      <div onClick={()=>setExpandedId(isExpanded?null:camp.id)} style={{flex:1,padding:"11px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:"9px"}}>
+                        <span style={{fontSize:"22px",flexShrink:0}}>{camp.emoji}</span>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",alignItems:"baseline",gap:"7px",flexWrap:"wrap"}}>
+                            <span style={{fontSize:"14px",fontWeight:"bold",color:isVoted?"#e9d5ff":"#f0ede8"}}>{camp.name}</span>
+                            <span style={{fontSize:"10px",color:"#9b8ea0"}}>{camp.pref}</span>
+                          </div>
+                          <div style={{fontSize:"11px",color:"#9b8ea0",marginTop:"1px"}}>{camp.tagline}</div>
+                        </div>
+                        <span style={{fontSize:"15px",color:"#555",flexShrink:0,transform:isExpanded?"rotate(180deg)":"none",transition:"transform 0.3s"}}>▾</span>
+                      </div>
+                    </div>
+                    {isExpanded&&(
+                      <div style={{borderTop:"1px solid rgba(255,255,255,0.07)",background:"rgba(0,0,0,0.18)"}}>
+                        <div style={{display:"flex",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+                          {[["feature","✦ 特徴"],["onsen","♨️ 温泉"],["supermarket","🛒 スーパー"]].map(([key,label])=>(
+                            <button key={key} onClick={()=>setTab(camp.id,key)} style={{flex:1,padding:"8px 2px",fontSize:"11px",background:tab===key?"rgba(167,139,250,0.12)":"transparent",border:"none",borderBottom:`2px solid ${tab===key?"#a78bfa":"transparent"}`,color:tab===key?"#c4b5fd":"#9b8ea0",cursor:"pointer",transition:"all 0.2s"}}>{label}</button>
+                          ))}
+                        </div>
+                        <div style={{padding:"13px",fontSize:"12px",lineHeight:"1.8",color:"#c0b8cc"}}>
+                          {tab==="feature"&&camp.feature}
+                          {tab==="onsen"&&camp.onsen}
+                          {tab==="supermarket"&&camp.supermarket}
+                        </div>
+                        <div style={{padding:"9px 13px",borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",gap:"8px"}}>
+                          <a href={camp.url} target="_blank" rel="noopener noreferrer" style={{fontSize:"11px",color:"#a78bfa",textDecoration:"none",padding:"5px 12px",border:"1px solid rgba(167,139,250,0.35)",borderRadius:"6px"}}>🔗 公式サイト</a>
+                          <a href={camp.mapUrl} target="_blank" rel="noopener noreferrer" style={{fontSize:"11px",color:"#6ee7b7",textDecoration:"none",padding:"5px 12px",border:"1px solid rgba(110,231,183,0.35)",borderRadius:"6px"}}>📍 地図</a>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 下部バー */}
+      {!submitted&&(
+        <div style={{position:"fixed",bottom:0,left:0,right:0,background:"rgba(15,12,41,0.97)",backdropFilter:"blur(20px)",borderTop:"1px solid rgba(255,255,255,0.08)",padding:"12px 16px"}}>
+          <div style={{maxWidth:"800px",margin:"0 auto",display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap",justifyContent:"center"}}>
+            <div style={{display:"flex",flexDirection:"column",gap:"2px"}}>
+              <input type="text" placeholder="お名前を入力…" value={userName} onChange={e=>{setUserName(e.target.value);setNameError("");}} style={{background:"rgba(255,255,255,0.08)",border:`1px solid ${nameError?"#f87171":"rgba(255,255,255,0.18)"}`,borderRadius:"8px",padding:"9px 13px",color:"#f0ede8",fontSize:"13px",width:"150px",outline:"none",fontFamily:"inherit"}}/>
+              {nameError&&<span style={{fontSize:"10px",color:"#f87171"}}>{nameError}</span>}
+            </div>
+            <span style={{fontSize:"12px",color:"#9b8ea0"}}>{votes.length<MAX_VOTES?`あと ${MAX_VOTES-votes.length} か所`:"4か所選択完了！"}</span>
+            <button onClick={handleSubmit} disabled={votes.length!==MAX_VOTES||saving} style={{background:votes.length===MAX_VOTES?"linear-gradient(135deg,#a78bfa,#ec4899)":"rgba(255,255,255,0.07)",border:"none",borderRadius:"10px",padding:"10px 26px",color:votes.length===MAX_VOTES?"#fff":"#555",fontSize:"13px",fontWeight:"bold",cursor:votes.length===MAX_VOTES?"pointer":"not-allowed",letterSpacing:"1px",transition:"all 0.3s",boxShadow:votes.length===MAX_VOTES?"0 4px 16px rgba(167,139,250,0.4)":"none"}}>
+              {saving?"送信中…":"投票する 🏕️"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==============================
+// 結果ページ
+// ==============================
+function ResultsPage() {
+  const [allVotes, setAllVotes] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [lastUpdated, setLastUpdated] = React.useState(null);
+
+  const fetchVotes = async () => {
+    setLoading(true);
+    try {
+      const v = await loadVotes();
+      setAllVotes(v);
+      setLastUpdated(new Date());
+    } catch { setAllVotes([]); }
+    setLoading(false);
+  };
+  React.useEffect(()=>{ fetchVotes(); },[]);
+
+  const tally = {};
+  camps.forEach(c=>{ tally[c.id]=0; });
+  allVotes.forEach(v=>{ (v.votes||[]).forEach(id=>{ tally[id]=(tally[id]||0)+1; }); });
+  const sorted = [...camps].sort((a,b)=>tally[b.id]-tally[a.id]);
+  const maxVotes = Math.max(...Object.values(tally),1);
+  const totalVoters = allVotes.length;
+
+  return (
+    <div style={{...S.page,background:"linear-gradient(150deg,#060614 0%,#0a1020 60%,#060614 100%)"}}>
+      <div style={S.header}>
+        <div style={S.label}>CAMP SELECTION 2025</div>
+        <h1 style={S.h1result}>📊 投票結果</h1>
+        <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:"14px",flexWrap:"wrap",marginBottom:"10px"}}>
+          <span style={{fontSize:"12px",color:"#9b8ea0"}}>参加者 <span style={{color:"#6ee7b7",fontWeight:"bold",fontSize:"18px"}}>{totalVoters}</span> 名</span>
+          {lastUpdated&&<span style={{fontSize:"10px",color:"#444"}}>{lastUpdated.toLocaleTimeString("ja-JP")} 更新</span>}
+          <button onClick={fetchVotes} style={{background:"rgba(110,231,183,0.12)",border:"1px solid rgba(110,231,183,0.3)",color:"#6ee7b7",borderRadius:"16px",padding:"4px 13px",cursor:"pointer",fontSize:"11px"}}>🔄 更新</button>
+        </div>
+        <a href="?" style={S.backLink}>← 投票ページへ戻る</a>
+      </div>
+
+      <div style={{maxWidth:"800px",margin:"0 auto",padding:"24px 14px 60px"}}>
+        {loading?(
+          <div style={{textAlign:"center",padding:"60px",color:"#9b8ea0"}}>
+            <div style={{fontSize:"32px",marginBottom:"10px"}}>⏳</div>読み込み中…
+          </div>
+        ):totalVoters===0?(
+          <div style={{textAlign:"center",padding:"60px 20px",background:"rgba(255,255,255,0.02)",borderRadius:"16px",border:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{fontSize:"38px",marginBottom:"10px"}}>🗳️</div>
+            <div style={{fontSize:"15px",color:"#9b8ea0",marginBottom:"10px"}}>まだ投票がありません</div>
+            <a href="?" style={{fontSize:"13px",color:"#a78bfa",textDecoration:"none"}}>投票ページへ →</a>
+          </div>
+        ):(
+          <>
+            {/* ランキング */}
+            <div style={{marginBottom:"28px"}}>
+              <div style={{fontSize:"10px",letterSpacing:"4px",color:"#9b8ea0",textTransform:"uppercase",marginBottom:"14px",textAlign:"center"}}>RANKING</div>
+              {sorted.map((camp,idx)=>{
+                const count = tally[camp.id];
+                const pct = totalVoters>0?Math.round((count/totalVoters)*100):0;
+                const barW = (count/maxVotes)*100;
+                const medals = ["🥇","🥈","🥉"];
+                const isTop3 = idx<3;
+                return (
+                  <div key={camp.id} style={{marginBottom:"8px",background:isTop3?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.015)",border:`1px solid ${idx===0?"rgba(255,215,0,0.3)":idx===1?"rgba(192,192,192,0.2)":idx===2?"rgba(205,127,50,0.2)":"rgba(255,255,255,0.06)"}`,borderRadius:"11px",padding:"12px 14px"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:"9px",marginBottom:"9px"}}>
+                      <span style={{fontSize:"18px",minWidth:"26px",textAlign:"center"}}>{isTop3?medals[idx]:<span style={{fontSize:"12px",color:"#555"}}>#{idx+1}</span>}</span>
+                      <span style={{fontSize:"18px"}}>{camp.emoji}</span>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontWeight:"bold",fontSize:"13px",color:idx===0?"#ffd700":"#f0ede8"}}>{camp.name}</div>
+                        <div style={{fontSize:"10px",color:"#9b8ea0"}}>{camp.pref}</div>
+                      </div>
+                      <div style={{textAlign:"right",flexShrink:0}}>
+                        <div style={{fontSize:"18px",fontWeight:"bold",color:idx===0?"#ffd700":"#c4b5fd"}}>{count}票</div>
+                        <div style={{fontSize:"10px",color:"#9b8ea0"}}>{pct}%</div>
+                      </div>
+                    </div>
+                    <div style={{background:"rgba(255,255,255,0.07)",borderRadius:"3px",height:"5px",overflow:"hidden"}}>
+                      <div style={{height:"100%",borderRadius:"3px",width:`${barW}%`,background:idx===0?"linear-gradient(90deg,#ffd700,#ffaa00)":idx===1?"linear-gradient(90deg,#c0c0c0,#909090)":idx===2?"linear-gradient(90deg,#cd7f32,#a0632a)":"linear-gradient(90deg,#a78bfa,#6366f1)",transition:"width 0.8s ease"}}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* 投票者一覧 */}
+            <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:"14px",padding:"18px"}}>
+              <div style={{fontSize:"10px",letterSpacing:"4px",color:"#9b8ea0",textTransform:"uppercase",marginBottom:"14px",textAlign:"center"}}>みんなの選択</div>
+              <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                {[...allVotes].sort((a,b)=>a.ts-b.ts).map((voter,i)=>{
+                  const chosen = camps.filter(c=>(voter.votes||[]).includes(c.id));
+                  return (
+                    <div key={i} style={{background:"rgba(255,255,255,0.025)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:"9px",padding:"11px 13px"}}>
+                      <div style={{fontSize:"12px",color:"#a78bfa",marginBottom:"7px",fontWeight:"bold"}}>👤 {voter.name}</div>
+                      <div style={{display:"flex",gap:"6px",flexWrap:"wrap"}}>
+                        {chosen.map(c=>(
+                          <span key={c.id} style={{background:"rgba(167,139,250,0.12)",border:"1px solid rgba(167,139,250,0.28)",borderRadius:"6px",padding:"3px 9px",fontSize:"11px"}}>{c.emoji} {c.name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==============================
+// Root
+// ==============================
+function App() {
+  const [page, setPage] = React.useState(()=>getPage());
+  React.useEffect(()=>{
+    const h = ()=>setPage(getPage());
+    window.addEventListener("popstate",h);
+    return ()=>window.removeEventListener("popstate",h);
+  },[]);
+  return page==="results"?React.createElement(ResultsPage):React.createElement(VotePage);
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(App));
+
+</script>
+</body>
+</html>
