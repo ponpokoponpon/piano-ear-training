@@ -14,7 +14,13 @@
         .title-image { margin-bottom: 30px; text-align: center; }
         .title-image img { max-width: 100%; max-height: 100px; object-fit: contain; }
         h1 { font-size: 36px; color: #333; margin-bottom: 10px; }
-        .subtitle { font-size: 18px; color: #666; margin-bottom: 30px; }
+        .subtitle { font-size: 18px; color: #666; margin-bottom: 15px; }
+        .difficulty-section { background: rgba(156, 126, 111, 0.1); border-radius: 15px; padding: 15px; margin-bottom: 25px; border: 2px solid #9c7e6f; }
+        .difficulty-label { font-size: 13px; font-weight: bold; color: #666; margin-bottom: 10px; }
+        .difficulty-buttons { display: flex; gap: 10px; justify-content: center; }
+        .difficulty-btn { background: white; border: 2px solid #9c7e6f; border-radius: 8px; padding: 8px 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; color: #666; }
+        .difficulty-btn.active { background: #9c7e6f; color: white; border-color: #9c7e6f; }
+        .difficulty-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(156, 126, 111, 0.2); }
         .piano-icon { font-size: 60px; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
         @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
         .score-section { background: rgba(255,255,255,0.7); border-radius: 15px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-around; align-items: center; border: 2px solid #9c7e6f; }
@@ -53,7 +59,7 @@
         .stat-correct { color: #4caf50; font-size: 12px; font-weight: bold; }
         .stat-incorrect { color: #f44336; font-size: 12px; font-weight: bold; }
         .stat-rate { font-size: 11px; color: #666; margin-top: 3px; }
-        @media (max-width: 480px) { .container { padding: 20px 15px 40px 15px; } h1 { font-size: 28px; } .play-button { padding: 16px 40px; font-size: 18px; } .score-section { flex-direction: column; gap: 15px; } }
+        @media (max-width: 480px) { .container { padding: 20px 15px 40px 15px; } h1 { font-size: 28px; } .difficulty-buttons { flex-wrap: wrap; } .difficulty-btn { padding: 6px 16px; font-size: 12px; } .piano-keys { grid-template-columns: repeat(6, 1fr); } .play-button { padding: 16px 40px; font-size: 18px; } .score-section { flex-direction: column; gap: 15px; } }
     </style>
 </head>
 <body>
@@ -63,7 +69,15 @@
         </div>
         <div class="piano-icon">🎹</div>
         <h1>ドレミ音当てゲーム</h1>
-        <p class="subtitle">聞こえた音を当ててね！</p>
+        <p class="subtitle" id="subtitle">聞こえた音を当ってね！</p>
+        <div class="difficulty-section">
+            <div class="difficulty-label">難易度を選択</div>
+            <div class="difficulty-buttons">
+                <button class="difficulty-btn active" data-difficulty="easy">初級</button>
+                <button class="difficulty-btn" data-difficulty="normal">中級</button>
+                <button class="difficulty-btn" data-difficulty="hard">上級</button>
+            </div>
+        </div>
         <div class="score-section">
             <div class="score-item"><div class="score-label">正解 ✨</div><div class="score-value" id="correctCount">0</div></div>
             <div class="score-item"><div class="score-label">不正解 ❌</div><div class="score-value" id="incorrectCount">0</div></div>
@@ -81,17 +95,67 @@
     </div>
     <script>
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let gameState = { currentNote: null, correctCount: 0, incorrectCount: 0, isPlaying: false, isWaiting: false, noteStats: {} };
-        const notes = { 'ド': { freq: 261.63, class: 'do' }, 'レ': { freq: 293.66, class: 're' }, 'ミ': { freq: 329.63, class: 'mi' }, 'ファ': { freq: 349.23, class: 'fa' }, 'ソ': { freq: 392.00, class: 'so' }, 'ラ': { freq: 440.00, class: 'ra' }, 'シ': { freq: 493.88, class: 'si' } };
-        const noteNames = ['ド', 'レ', 'ミ', 'ファ', 'ソ', 'ラ', 'シ'];
+        let gameState = { currentNote: null, currentChord: null, correctCount: 0, incorrectCount: 0, isPlaying: false, isWaiting: false, noteStats: {}, difficulty: 'easy' };
+        const notes = {
+            'ド': { freq: 261.63, class: 'do' },
+            'ド#': { freq: 277.18, class: 'do' },
+            'レ': { freq: 293.66, class: 're' },
+            'レ#': { freq: 311.13, class: 're' },
+            'ミ': { freq: 329.63, class: 'mi' },
+            'ファ': { freq: 349.23, class: 'fa' },
+            'ファ#': { freq: 369.99, class: 'fa' },
+            'ソ': { freq: 392.00, class: 'so' },
+            'ソ#': { freq: 415.30, class: 'so' },
+            'ラ': { freq: 440.00, class: 'ra' },
+            'ラ#': { freq: 466.16, class: 'ra' },
+            'シ': { freq: 493.88, class: 'si' }
+        };
+        const difficulties = {
+            easy: ['ド', 'レ', 'ミ', 'ファ', 'ソ', 'ラ', 'シ'],
+            normal: ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'],
+            hard: ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ']
+        };
+        const allNotes = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
+        function getMajorChord(rootNote) {
+            const rootIndex = allNotes.indexOf(rootNote);
+            const thirdNote = allNotes[(rootIndex + 4) % 12];
+            const fifthNote = allNotes[(rootIndex + 7) % 12];
+            return [rootNote, thirdNote, fifthNote];
+        }
         function init() {
-            noteNames.forEach(name => { gameState.noteStats[name] = { correct: 0, incorrect: 0 }; });
-            createPianoKeys(); updateStatsDisplay(); setupEventListeners();
+            allNotes.forEach(name => { gameState.noteStats[name] = { correct: 0, incorrect: 0 }; });
+            createPianoKeys();
+            updateStatsDisplay();
+            setupEventListeners();
+            updateSubtitle();
+        }
+        function setupEventListeners() {
+            document.getElementById('playButton').addEventListener('click', playRandomNote);
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    gameState.difficulty = e.target.dataset.difficulty;
+                    gameState.correctCount = 0;
+                    gameState.incorrectCount = 0;
+                    document.getElementById('correctCount').textContent = '0';
+                    document.getElementById('incorrectCount').textContent = '0';
+                    document.getElementById('accuracy').textContent = '-';
+                    updateSubtitle();
+                    createPianoKeys();
+                    updateStatsDisplay();
+                });
+            });
+        }
+        function updateSubtitle() {
+            const subtitles = { easy: '聞こえた音を当ってね！', normal: '聞こえた音を当ってね！', hard: 'メジャーコードの根音を当ってね！' };
+            document.getElementById('subtitle').textContent = subtitles[gameState.difficulty];
         }
         function createPianoKeys() {
             const container = document.getElementById('pianoKeys');
             container.innerHTML = '';
-            noteNames.forEach(name => {
+            const currentNotes = gameState.difficulty === 'hard' ? allNotes : difficulties[gameState.difficulty];
+            currentNotes.forEach(name => {
                 const noteInfo = notes[name];
                 const button = document.createElement('button');
                 button.className = `key-button ${noteInfo.class}`;
@@ -103,16 +167,16 @@
             updateKeyStats();
         }
         function updateKeyStats() {
-            noteNames.forEach(name => {
+            allNotes.forEach(name => {
                 const stats = gameState.noteStats[name];
                 const statEl = document.getElementById(`stats-${name}`);
-                if (stats.correct + stats.incorrect > 0) statEl.textContent = `✓${stats.correct} ✗${stats.incorrect}`;
+                if (statEl && stats.correct + stats.incorrect > 0) statEl.textContent = `✓${stats.correct} ✗${stats.incorrect}`;
             });
         }
         function updateStatsDisplay() {
             const grid = document.getElementById('statsGrid');
             grid.innerHTML = '';
-            noteNames.forEach(name => {
+            (gameState.difficulty === 'hard' ? allNotes : difficulties[gameState.difficulty]).forEach(name => {
                 const stats = gameState.noteStats[name];
                 const total = stats.correct + stats.incorrect;
                 const rate = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
@@ -122,17 +186,55 @@
                 grid.appendChild(item);
             });
         }
-        function setupEventListeners() {
-            document.getElementById('playButton').addEventListener('click', playRandomNote);
-        }
         function playRandomNote() {
             if (gameState.isPlaying) return;
-            gameState.isPlaying = true; gameState.isWaiting = true;
+            gameState.isPlaying = true;
+            gameState.isWaiting = true;
             document.getElementById('playButton').disabled = true;
             document.getElementById('feedback').textContent = '♪ 音を再生中...';
             document.getElementById('feedback').className = 'feedback waiting';
-            if (!gameState.currentNote) gameState.currentNote = noteNames[Math.floor(Math.random() * noteNames.length)];
-            playPianoSound(notes[gameState.currentNote].freq, 1.5);
+            const currentNotes = gameState.difficulty === 'hard' ? allNotes : difficulties[gameState.difficulty];
+            if (!gameState.currentNote) gameState.currentNote = currentNotes[Math.floor(Math.random() * currentNotes.length)];
+            if (gameState.difficulty === 'hard') {
+                gameState.currentChord = getMajorChord(gameState.currentNote);
+                playChord(gameState.currentChord, 1.5);
+            } else {
+                playPianoSound(notes[gameState.currentNote].freq, 1.5);
+            }
+        }
+        function playChord(chordNotes, duration = 1.5) {
+            try {
+                const now = audioContext.currentTime;
+                const gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+                chordNotes.forEach(noteName => {
+                    const frequency = notes[noteName].freq;
+                    const harmonics = [{ ratio: 1, volume: 0.4 }, { ratio: 2, volume: 0.2 }, { ratio: 3, volume: 0.1 }, { ratio: 4, volume: 0.08 }];
+                    harmonics.forEach(harmonic => {
+                        const osc = audioContext.createOscillator();
+                        const gain = audioContext.createGain();
+                        osc.connect(gain);
+                        gain.connect(gainNode);
+                        osc.frequency.value = frequency * harmonic.ratio;
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(harmonic.volume, now + 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.1, now + duration * 0.3);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+                        osc.start(now);
+                        osc.stop(now + duration);
+                    });
+                });
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
+                setTimeout(() => {
+                    gameState.isPlaying = false;
+                    document.getElementById('playButton').disabled = false;
+                }, duration * 1000);
+            } catch (e) {
+                gameState.isPlaying = false;
+                document.getElementById('playButton').disabled = false;
+            }
         }
         function playPianoSound(frequency, duration = 1.5) {
             try {
@@ -143,14 +245,16 @@
                 harmonics.forEach(harmonic => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
-                    osc.connect(gain); gain.connect(gainNode);
+                    osc.connect(gain);
+                    gain.connect(gainNode);
                     osc.frequency.value = frequency * harmonic.ratio;
                     osc.type = 'sine';
                     gain.gain.setValueAtTime(0, now);
                     gain.gain.linearRampToValueAtTime(harmonic.volume, now + 0.05);
                     gain.gain.exponentialRampToValueAtTime(0.1, now + duration * 0.3);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-                    osc.start(now); osc.stop(now + duration);
+                    osc.start(now);
+                    osc.stop(now + duration);
                 });
                 gainNode.gain.setValueAtTime(0.3, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
@@ -171,7 +275,8 @@
                 [880, 1100, 1320].forEach((freq, index) => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
-                    osc.connect(gain); gain.connect(gainNode);
+                    osc.connect(gain);
+                    gain.connect(gainNode);
                     osc.frequency.value = freq;
                     osc.type = 'sine';
                     gain.gain.setValueAtTime(0, now);
@@ -191,13 +296,15 @@
                 [200, 150].forEach(freq => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
-                    osc.connect(gain); gain.connect(gainNode);
+                    osc.connect(gain);
+                    gain.connect(gainNode);
                     osc.frequency.value = freq;
                     osc.type = 'sine';
                     gain.gain.setValueAtTime(0, now);
                     gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now); osc.stop(now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
                 });
                 gainNode.gain.setValueAtTime(0.3, now);
             } catch (e) {}
@@ -208,11 +315,13 @@
             const feedback = document.getElementById('feedback');
             const buttons = document.querySelectorAll('.key-button');
             buttons.forEach(btn => btn.disabled = true);
-            if (guessedNote === gameState.currentNote) {
+            const isCorrect = guessedNote === gameState.currentNote;
+            if (isCorrect) {
                 gameState.correctCount++;
                 gameState.noteStats[gameState.currentNote].correct++;
                 buttons.forEach(btn => { if (btn.dataset.note === gameState.currentNote) btn.classList.add('correct'); });
-                feedback.textContent = '✨ せいかい！';
+                const displayText = gameState.difficulty === 'hard' ? `✨ せいかい！（根音：${gameState.currentNote}）` : '✨ せいかい！';
+                feedback.textContent = displayText;
                 feedback.className = 'feedback correct-feedback';
                 playSuccessSound();
             } else {
@@ -226,10 +335,13 @@
                 feedback.className = 'feedback incorrect-feedback';
                 playFailureSound();
             }
-            updateScore(); updateKeyStats(); updateStatsDisplay();
+            updateScore();
+            updateKeyStats();
+            updateStatsDisplay();
             setTimeout(() => {
                 buttons.forEach(btn => { btn.disabled = false; btn.classList.remove('correct', 'incorrect'); });
                 gameState.currentNote = null;
+                gameState.currentChord = null;
                 playRandomNote();
             }, 2000);
         }
