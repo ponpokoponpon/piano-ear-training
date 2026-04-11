@@ -73,6 +73,24 @@
             animation: float 3s ease-in-out infinite;
         }
 
+        .illustration-section {
+            margin: 20px 0 30px 0;
+            text-align: center;
+        }
+
+        .illustration-image {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+        }
+
+        .header-image {
+            max-width: 100%;
+            object-fit: contain;
+        }
+
         @keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
@@ -372,6 +390,7 @@
 </head>
 <body>
     <div class="header">
+        <img src="images/title.png" alt="ピアノ&リトミック教室" class="header-image" style="max-height: 60px; margin-bottom: 10px;">
         <h2>🎹 ピアノ&リトミック教室</h2>
         <p>音感トレーニング</p>
     </div>
@@ -383,6 +402,10 @@
         <div class="piano-icon">🎹</div>
         <h1>ドレミ音当てゲーム</h1>
         <p class="subtitle">聞こえた音を当ててね！</p>
+
+        <div class="illustration-section">
+            <img src="images/illustration.png" alt="ピアノ教室のイラスト" class="illustration-image">
+        </div>
 
         <div class="score-section">
             <div class="score-item">
