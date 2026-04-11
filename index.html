@@ -10,9 +10,9 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Arial', 'MS Gothic', sans-serif; background: #e8e4d0; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
-        .header { position: absolute; top: 0; left: 0; width: 100%; background: rgba(255, 255, 255, 0.5); padding: 15px 0; text-align: center; }
-        .header img { max-height: 80px; object-fit: contain; }
-        .container { background: white; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 40px 20px; max-width: 500px; width: 100%; text-align: center; margin-top: 120px; }
+        .container { background: white; border-radius: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 30px 20px 40px 20px; max-width: 500px; width: 100%; text-align: center; }
+        .title-image { margin-bottom: 30px; text-align: center; }
+        .title-image img { max-width: 100%; max-height: 100px; object-fit: contain; }
         h1 { font-size: 36px; color: #333; margin-bottom: 10px; }
         .subtitle { font-size: 18px; color: #666; margin-bottom: 30px; }
         .piano-icon { font-size: 60px; margin-bottom: 15px; animation: float 3s ease-in-out infinite; }
@@ -21,8 +21,6 @@
         .score-item { text-align: center; }
         .score-label { font-size: 14px; color: #666; font-weight: bold; margin-bottom: 5px; }
         .score-value { font-size: 36px; font-weight: bold; color: #9c7e6f; }
-        .illustration-container { margin: 25px 0 30px 0; text-align: center; }
-        .illustration-image { max-width: 100%; max-height: 280px; border-radius: 15px; object-fit: contain; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
         .game-section { margin-bottom: 40px; }
         .play-button { background: linear-gradient(135deg, #9c7e6f 0%, #8b6f47 100%); color: white; border: none; border-radius: 20px; padding: 18px 50px; font-size: 20px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(156,126,111,0.3); }
         .play-button:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(156,126,111,0.5); }
@@ -55,14 +53,14 @@
         .stat-correct { color: #4caf50; font-size: 12px; font-weight: bold; }
         .stat-incorrect { color: #f44336; font-size: 12px; font-weight: bold; }
         .stat-rate { font-size: 11px; color: #666; margin-top: 3px; }
-        @media (max-width: 480px) { .container { margin-top: 130px; } h1 { font-size: 28px; } .illustration-image { max-height: 220px; } .play-button { padding: 16px 40px; font-size: 18px; } .score-section { flex-direction: column; gap: 15px; } }
+        @media (max-width: 480px) { .container { padding: 20px 15px 40px 15px; } h1 { font-size: 28px; } .play-button { padding: 16px 40px; font-size: 18px; } .score-section { flex-direction: column; gap: 15px; } }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="images/title.png" alt="ピアノ&リトミック教室">
-    </div>
     <div class="container">
+        <div class="title-image">
+            <img src="images/title.png" alt="ピアノ&リトミック教室 Waltz">
+        </div>
         <div class="piano-icon">🎹</div>
         <h1>ドレミ音当てゲーム</h1>
         <p class="subtitle">聞こえた音を当ててね！</p>
@@ -70,9 +68,6 @@
             <div class="score-item"><div class="score-label">正解 ✨</div><div class="score-value" id="correctCount">0</div></div>
             <div class="score-item"><div class="score-label">不正解 ❌</div><div class="score-value" id="incorrectCount">0</div></div>
             <div class="score-item"><div class="score-label">正答率 📊</div><div class="score-value" id="accuracy">-</div></div>
-        </div>
-        <div class="illustration-container">
-            <img src="images/illustration.png" alt="ピアノ教室" class="illustration-image">
         </div>
         <div class="game-section">
             <button class="play-button" id="playButton">♪ 音を聞く ♪</button>
