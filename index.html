@@ -518,6 +518,78 @@
             }
         }
 
+        // 正解音（高い輝く音）
+        function playSuccessSound() {
+            try {
+                const now = audioContext.currentTime;
+                const gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+
+                // 高い周波数でキラキラした音
+                const frequencies = [880, 1100, 1320]; // 高い周波数
+                const duration = 0.6;
+
+                frequencies.forEach((freq, index) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(gainNode);
+
+                    osc.frequency.value = freq;
+                    osc.type = 'sine';
+
+                    // 明るい立ち上がり
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+                    osc.start(now + index * 0.1);
+                    osc.stop(now + duration + index * 0.1);
+                });
+
+                gainNode.gain.setValueAtTime(0.4, now);
+            } catch (e) {
+                console.error('Success sound error:', e);
+            }
+        }
+
+        // 不正解音（低い音）
+        function playFailureSound() {
+            try {
+                const now = audioContext.currentTime;
+                const gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+
+                // 低い周波数でブザー的な音
+                const frequencies = [200, 150]; // 低い周波数
+                const duration = 0.4;
+
+                frequencies.forEach((freq, index) => {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(gainNode);
+
+                    osc.frequency.value = freq;
+                    osc.type = 'sine';
+
+                    // 急速な減衰
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+
+                    osc.start(now);
+                    osc.stop(now + duration);
+                });
+
+                gainNode.gain.setValueAtTime(0.3, now);
+            } catch (e) {
+                console.error('Failure sound error:', e);
+            }
+        }
+
         // 音を当てる
         function guessNote(guessedNote) {
             if (gameState.isPlaying || !gameState.currentNote) return;
@@ -541,7 +613,7 @@
                 });
                 feedback.textContent = '✨ せいかい！';
                 feedback.className = 'feedback correct-feedback';
-                playPianoSound(notes[guessedNote].freq, 0.8);
+                playSuccessSound();
             } else {
                 // 不正解
                 gameState.incorrectCount++;
@@ -556,6 +628,7 @@
                 });
                 feedback.textContent = `❌ ざんねん。正解は「${gameState.currentNote}」でした`;
                 feedback.className = 'feedback incorrect-feedback';
+                playFailureSound();
             }
 
             updateScore();
