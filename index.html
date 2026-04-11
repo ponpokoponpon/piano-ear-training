@@ -101,6 +101,7 @@
     </div>
     <script>
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const HARMONICS = [{ ratio: 1, volume: 0.4 }, { ratio: 2, volume: 0.2 }, { ratio: 3, volume: 0.1 }, { ratio: 4, volume: 0.08 }];
         let gameState = { currentNote: null, currentChord: null, selectedNotes: [], correctCount: 0, incorrectCount: 0, isPlaying: false, isWaiting: false, noteStats: {}, difficulty: 'easy' };
         const notes = {
             'ド': { freq: 261.63, class: 'do' },
@@ -146,6 +147,9 @@
                     gameState.correctCount = 0;
                     gameState.incorrectCount = 0;
                     gameState.selectedNotes = [];
+                    gameState.currentNote = null;
+                    gameState.currentChord = null;
+                    allNotes.forEach(name => { gameState.noteStats[name] = { correct: 0, incorrect: 0 }; });
                     document.getElementById('correctCount').textContent = '0';
                     document.getElementById('incorrectCount').textContent = '0';
                     document.getElementById('accuracy').textContent = '-';
@@ -331,8 +335,7 @@
                 gainNode.connect(audioContext.destination);
                 chordNotes.forEach(noteName => {
                     const frequency = notes[noteName].freq;
-                    const harmonics = [{ ratio: 1, volume: 0.4 }, { ratio: 2, volume: 0.2 }, { ratio: 3, volume: 0.1 }, { ratio: 4, volume: 0.08 }];
-                    harmonics.forEach(harmonic => {
+                    HARMONICS.forEach(harmonic => {
                         const osc = audioContext.createOscillator();
                         const gain = audioContext.createGain();
                         osc.connect(gain);
@@ -363,8 +366,7 @@
                 const now = audioContext.currentTime;
                 const gainNode = audioContext.createGain();
                 gainNode.connect(audioContext.destination);
-                const harmonics = [{ ratio: 1, volume: 0.4 }, { ratio: 2, volume: 0.2 }, { ratio: 3, volume: 0.1 }, { ratio: 4, volume: 0.08 }];
-                harmonics.forEach(harmonic => {
+                HARMONICS.forEach(harmonic => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
                     osc.connect(gain);
