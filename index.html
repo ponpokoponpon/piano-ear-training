@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
     <title>🎹 ドレミ音当てゲーム</title>
     <style>
         * {
@@ -31,17 +34,9 @@
             text-align: center;
         }
 
-        .header h2 {
-            color: white;
-            font-size: 14px;
-            font-weight: normal;
-            letter-spacing: 2px;
-        }
-
-        .header p {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 12px;
-            margin-top: 3px;
+        .header img {
+            max-height: 80px;
+            object-fit: contain;
         }
 
         .container {
@@ -52,7 +47,7 @@
             max-width: 500px;
             width: 100%;
             text-align: center;
-            margin-top: 80px;
+            margin-top: 120px;
         }
 
         h1 {
@@ -71,11 +66,6 @@
             font-size: 60px;
             margin-bottom: 15px;
             animation: float 3s ease-in-out infinite;
-        }
-
-        .header-image {
-            max-width: 100%;
-            object-fit: contain;
         }
 
         @keyframes float {
@@ -131,7 +121,7 @@
 
         .play-button:hover:not(:disabled) {
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
+            box-shadow: 0 8px 20px rgba(156, 126, 111, 0.5);
         }
 
         .play-button:active:not(:disabled) {
@@ -339,7 +329,7 @@
         @media (max-width: 480px) {
             .container {
                 padding: 30px 15px;
-                margin-top: 100px;
+                margin-top: 130px;
             }
 
             h1 {
@@ -377,7 +367,7 @@
 </head>
 <body>
     <div class="header">
-        <img src="images/title.png?v=2" alt="ピアノ&リトミック教室" class="header-image" style="max-height: 60px; margin-bottom: 10px;">
+        <img src="images/title.png" alt="ピアノ&リトミック教室">
     </div>
 
     <div class="decoration decoration-left">🎵</div>
@@ -417,10 +407,8 @@
     </div>
 
     <script>
-        // Web Audio API セットアップ
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-        // ゲーム状態
         let gameState = {
             currentNote: null,
             correctCount: 0,
@@ -430,7 +418,6 @@
             noteStats: {}
         };
 
-        // ドレミファソラシドの周波数
         const notes = {
             'ド': { freq: 261.63, class: 'do', index: 0 },
             'レ': { freq: 293.66, class: 're', index: 1 },
@@ -443,23 +430,18 @@
 
         const noteNames = ['ド', 'レ', 'ミ', 'ファ', 'ソ', 'ラ', 'シ'];
 
-        // 初期化
         function init() {
-            // 統計の初期化
             noteNames.forEach(name => {
                 gameState.noteStats[name] = { correct: 0, incorrect: 0 };
             });
-
             createPianoKeys();
             updateStatsDisplay();
             setupEventListeners();
         }
 
-        // ピアノキーの作成
         function createPianoKeys() {
             const container = document.getElementById('pianoKeys');
             container.innerHTML = '';
-
             noteNames.forEach(name => {
                 const noteInfo = notes[name];
                 const button = document.createElement('button');
@@ -469,11 +451,9 @@
                 button.addEventListener('click', () => guessNote(name));
                 container.appendChild(button);
             });
-
             updateKeyStats();
         }
 
-        // キーボタンの統計を更新
         function updateKeyStats() {
             noteNames.forEach(name => {
                 const stats = gameState.noteStats[name];
@@ -486,16 +466,13 @@
             });
         }
 
-        // 成績表示を更新
         function updateStatsDisplay() {
             const grid = document.getElementById('statsGrid');
             grid.innerHTML = '';
-
             noteNames.forEach(name => {
                 const stats = gameState.noteStats[name];
                 const total = stats.correct + stats.incorrect;
                 const rate = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
-
                 const item = document.createElement('div');
                 item.className = 'stat-item';
                 item.innerHTML = `
@@ -508,40 +485,30 @@
             });
         }
 
-        // イベントリスナー設定
         function setupEventListeners() {
             document.getElementById('playButton').addEventListener('click', playRandomNote);
         }
 
-        // ランダムな音を再生
         function playRandomNote() {
             if (gameState.isPlaying) return;
-
             gameState.isPlaying = true;
             gameState.isWaiting = true;
             document.getElementById('playButton').disabled = true;
             document.getElementById('feedback').textContent = '♪ 音を再生中...';
             document.getElementById('feedback').className = 'feedback waiting';
 
-            // 新しい音がまだ選ばれていない場合のみ選ぶ
-            // 正解・不正解になるまで同じ音が流れ続ける
             if (!gameState.currentNote) {
                 gameState.currentNote = noteNames[Math.floor(Math.random() * noteNames.length)];
             }
-
             playPianoSound(notes[gameState.currentNote].freq, 1.5);
         }
 
-        // ピアノ音を再生（ゲームプレイ用）
         function playPianoSound(frequency, duration = 1.5) {
             try {
                 const now = audioContext.currentTime;
-
-                // ピアノらしい音を作るために複数の周波数成分を組み合わせる
                 const gainNode = audioContext.createGain();
                 gainNode.connect(audioContext.destination);
 
-                // 基本波 + 倍音でピアノらしい音を作る
                 const harmonics = [
                     { ratio: 1, volume: 0.4 },
                     { ratio: 2, volume: 0.2 },
@@ -552,31 +519,21 @@
                 harmonics.forEach(harmonic => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
-
                     osc.connect(gain);
                     gain.connect(gainNode);
-
                     osc.frequency.value = frequency * harmonic.ratio;
                     osc.type = 'sine';
-
-                    // ピアノのようなエンベロープ（減衰）
                     gain.gain.setValueAtTime(0, now);
-                    // アタック（立ち上がり）
                     gain.gain.linearRampToValueAtTime(harmonic.volume, now + 0.05);
-                    // ディケイ（減衰）
                     gain.gain.exponentialRampToValueAtTime(0.1, now + duration * 0.3);
-                    // リリース（リリース）
                     gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
                     osc.start(now);
                     osc.stop(now + duration);
                 });
 
-                // マスターゲインの設定
                 gainNode.gain.setValueAtTime(0.3, now);
                 gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
 
-                // 再生完了後の処理
                 setTimeout(() => {
                     gameState.isPlaying = false;
                     document.getElementById('playButton').disabled = false;
@@ -586,100 +543,70 @@
                     }
                 }, duration * 1000);
             } catch (e) {
-                console.error('Audio playback error:', e);
+                console.error('Audio error:', e);
                 gameState.isPlaying = false;
                 document.getElementById('playButton').disabled = false;
             }
         }
 
-        // 正解音（高い輝く音）
         function playSuccessSound() {
             try {
                 const now = audioContext.currentTime;
                 const gainNode = audioContext.createGain();
                 gainNode.connect(audioContext.destination);
-
-                // 高い周波数でキラキラした音
-                const frequencies = [880, 1100, 1320]; // 高い周波数
+                const frequencies = [880, 1100, 1320];
                 const duration = 0.6;
-
                 frequencies.forEach((freq, index) => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
-
                     osc.connect(gain);
                     gain.connect(gainNode);
-
                     osc.frequency.value = freq;
                     osc.type = 'sine';
-
-                    // 明るい立ち上がり
                     gain.gain.setValueAtTime(0, now);
                     gain.gain.linearRampToValueAtTime(0.2, now + 0.05);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
                     osc.start(now + index * 0.1);
                     osc.stop(now + duration + index * 0.1);
                 });
-
                 gainNode.gain.setValueAtTime(0.4, now);
-            } catch (e) {
-                console.error('Success sound error:', e);
-            }
+            } catch (e) {}
         }
 
-        // 不正解音（低い音）
         function playFailureSound() {
             try {
                 const now = audioContext.currentTime;
                 const gainNode = audioContext.createGain();
                 gainNode.connect(audioContext.destination);
-
-                // 低い周波数でブザー的な音
-                const frequencies = [200, 150]; // 低い周波数
+                const frequencies = [200, 150];
                 const duration = 0.4;
-
                 frequencies.forEach((freq, index) => {
                     const osc = audioContext.createOscillator();
                     const gain = audioContext.createGain();
-
                     osc.connect(gain);
                     gain.connect(gainNode);
-
                     osc.frequency.value = freq;
                     osc.type = 'sine';
-
-                    // 急速な減衰
                     gain.gain.setValueAtTime(0, now);
                     gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + duration);
-
                     osc.start(now);
                     osc.stop(now + duration);
                 });
-
                 gainNode.gain.setValueAtTime(0.3, now);
-            } catch (e) {
-                console.error('Failure sound error:', e);
-            }
+            } catch (e) {}
         }
 
-        // 音を当てる
         function guessNote(guessedNote) {
             if (gameState.isPlaying || !gameState.currentNote) return;
-
             gameState.isWaiting = false;
             const feedback = document.getElementById('feedback');
             const buttons = document.querySelectorAll('.key-button');
-
-            // すべてのボタンを無効化
             buttons.forEach(btn => btn.disabled = true);
 
             if (guessedNote === gameState.currentNote) {
-                // 正解
                 gameState.correctCount++;
                 gameState.noteStats[gameState.currentNote].correct++;
-
                 buttons.forEach(btn => {
                     if (btn.dataset.note === gameState.currentNote) {
                         btn.classList.add('correct');
@@ -689,10 +616,8 @@
                 feedback.className = 'feedback correct-feedback';
                 playSuccessSound();
             } else {
-                // 不正解
                 gameState.incorrectCount++;
                 gameState.noteStats[gameState.currentNote].incorrect++;
-
                 buttons.forEach(btn => {
                     if (btn.dataset.note === gameState.currentNote) {
                         btn.classList.add('correct');
@@ -709,23 +634,19 @@
             updateKeyStats();
             updateStatsDisplay();
 
-            // 2秒後に次の問題へ
             setTimeout(() => {
                 buttons.forEach(btn => {
                     btn.disabled = false;
                     btn.classList.remove('correct', 'incorrect');
                 });
-                // 次の問題用に音をリセット
                 gameState.currentNote = null;
                 playRandomNote();
             }, 2000);
         }
 
-        // スコア更新
         function updateScore() {
             document.getElementById('correctCount').textContent = gameState.correctCount;
             document.getElementById('incorrectCount').textContent = gameState.incorrectCount;
-
             const total = gameState.correctCount + gameState.incorrectCount;
             if (total > 0) {
                 const accuracy = Math.round((gameState.correctCount / total) * 100);
@@ -733,7 +654,6 @@
             }
         }
 
-        // ゲーム開始
         init();
     </script>
 </body>
