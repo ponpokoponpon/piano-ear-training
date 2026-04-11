@@ -49,7 +49,12 @@
         .key-button.ra { background: linear-gradient(135deg, #667eea, #5c6bc0); }
         .key-button.si { background: linear-gradient(135deg, #d946ef, #c2185b); }
         .key-button.correct { animation: correctPulse 0.6s ease; }
+        .key-button.selected { border: 3px solid #333; transform: scale(0.95); box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
         @keyframes correctPulse { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+        .submit-button { background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; border: none; border-radius: 20px; padding: 14px 40px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; box-shadow: 0 5px 15px rgba(76,175,80,0.3); }
+        .submit-button:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(76,175,80,0.5); }
+        .submit-button:active:not(:disabled) { transform: translateY(0); }
+        .submit-button:disabled { opacity: 0.6; cursor: not-allowed; }
         .key-stats { font-size: 10px; margin-top: 2px; opacity: 0.9; font-weight: normal; }
         .stats-section { background: rgba(255,255,255,0.6); border-radius: 15px; padding: 20px; margin-top: 30px; border: 2px solid #9c7e6f; }
         .stats-title { font-size: 16px; font-weight: bold; color: #8b6f47; margin-bottom: 15px; }
@@ -88,6 +93,7 @@
             <div class="feedback waiting" id="feedback">準備完了！音を聞いてね</div>
         </div>
         <div class="piano-keys" id="pianoKeys"></div>
+        <button class="submit-button" id="submitButton">回答する</button>
         <div class="stats-section">
             <div class="stats-title">🎵 各音の成績</div>
             <div class="stats-grid" id="statsGrid"></div>
@@ -95,7 +101,7 @@
     </div>
     <script>
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        let gameState = { currentNote: null, currentChord: null, correctCount: 0, incorrectCount: 0, isPlaying: false, isWaiting: false, noteStats: {}, difficulty: 'easy' };
+        let gameState = { currentNote: null, currentChord: null, selectedNotes: [], correctCount: 0, incorrectCount: 0, isPlaying: false, isWaiting: false, noteStats: {}, difficulty: 'easy' };
         const notes = {
             'ド': { freq: 261.63, class: 'do' },
             'ド#': { freq: 277.18, class: 'do' },
@@ -131,6 +137,7 @@
         }
         function setupEventListeners() {
             document.getElementById('playButton').addEventListener('click', playRandomNote);
+            document.getElementById('submitButton').addEventListener('click', submitAnswer);
             document.querySelectorAll('.difficulty-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
@@ -138,6 +145,7 @@
                     gameState.difficulty = e.target.dataset.difficulty;
                     gameState.correctCount = 0;
                     gameState.incorrectCount = 0;
+                    gameState.selectedNotes = [];
                     document.getElementById('correctCount').textContent = '0';
                     document.getElementById('incorrectCount').textContent = '0';
                     document.getElementById('accuracy').textContent = '-';
@@ -148,7 +156,7 @@
             });
         }
         function updateSubtitle() {
-            const subtitles = { easy: '聞こえた音を当ってね！', normal: '聞こえた音を当ってね！', hard: 'メジャーコードの根音を当ってね！' };
+            const subtitles = { easy: '聞こえた音を当ってね！', normal: '聞こえた音を当ってね！', hard: 'メジャーコードの3つの音を選んでね！' };
             document.getElementById('subtitle').textContent = subtitles[gameState.difficulty];
         }
         function createPianoKeys() {
@@ -161,16 +169,44 @@
                 button.className = `key-button ${noteInfo.class}`;
                 button.innerHTML = `<span>${name}</span><span class="key-stats" id="stats-${name}"></span>`;
                 button.dataset.note = name;
-                button.addEventListener('click', () => guessNote(name));
+                button.addEventListener('click', () => toggleNoteSelection(name));
                 container.appendChild(button);
             });
             updateKeyStats();
+            clearSelection();
         }
         function updateKeyStats() {
             allNotes.forEach(name => {
                 const stats = gameState.noteStats[name];
                 const statEl = document.getElementById(`stats-${name}`);
                 if (statEl && stats.correct + stats.incorrect > 0) statEl.textContent = `✓${stats.correct} ✗${stats.incorrect}`;
+            });
+        }
+        function toggleNoteSelection(noteName) {
+            if (gameState.isPlaying || !gameState.currentNote) return;
+            const index = gameState.selectedNotes.indexOf(noteName);
+            if (index > -1) {
+                gameState.selectedNotes.splice(index, 1);
+            } else {
+                if (gameState.difficulty === 'hard') {
+                    if (gameState.selectedNotes.length < 3) gameState.selectedNotes.push(noteName);
+                } else {
+                    gameState.selectedNotes = [noteName];
+                }
+            }
+            updateSelectionDisplay();
+        }
+        function clearSelection() {
+            gameState.selectedNotes = [];
+            updateSelectionDisplay();
+        }
+        function updateSelectionDisplay() {
+            document.querySelectorAll('.key-button').forEach(btn => {
+                if (gameState.selectedNotes.includes(btn.dataset.note)) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
             });
         }
         function updateStatsDisplay() {
@@ -201,6 +237,92 @@
             } else {
                 playPianoSound(notes[gameState.currentNote].freq, 1.5);
             }
+        }
+        function submitAnswer() {
+            if (gameState.isPlaying || !gameState.currentNote || gameState.selectedNotes.length === 0) return;
+            if (gameState.difficulty === 'hard' && gameState.selectedNotes.length !== 3) return;
+            if (gameState.difficulty === 'hard') {
+                checkChordAnswer();
+            } else {
+                checkAnswer();
+            }
+        }
+        function checkAnswer() {
+            const guessedNote = gameState.selectedNotes[0];
+            const isCorrect = guessedNote === gameState.currentNote;
+            const feedback = document.getElementById('feedback');
+            const buttons = document.querySelectorAll('.key-button');
+            buttons.forEach(btn => btn.disabled = true);
+            if (isCorrect) {
+                gameState.correctCount++;
+                gameState.noteStats[gameState.currentNote].correct++;
+                buttons.forEach(btn => { if (btn.dataset.note === gameState.currentNote) btn.classList.add('correct'); });
+                feedback.textContent = '✨ せいかい！';
+                feedback.className = 'feedback correct-feedback';
+                playSuccessSound();
+            } else {
+                gameState.incorrectCount++;
+                gameState.noteStats[gameState.currentNote].incorrect++;
+                buttons.forEach(btn => {
+                    if (btn.dataset.note === gameState.currentNote) btn.classList.add('correct');
+                    else if (btn.dataset.note === guessedNote) btn.classList.add('incorrect');
+                });
+                feedback.textContent = `❌ ざんねん。正解は「${gameState.currentNote}」でした`;
+                feedback.className = 'feedback incorrect-feedback';
+                playFailureSound();
+            }
+            updateScore();
+            updateKeyStats();
+            updateStatsDisplay();
+            setTimeout(() => {
+                buttons.forEach(btn => { btn.disabled = false; btn.classList.remove('correct', 'incorrect', 'selected'); });
+                gameState.currentNote = null;
+                gameState.currentChord = null;
+                clearSelection();
+                playRandomNote();
+            }, 2000);
+        }
+        function checkChordAnswer() {
+            const selectedSet = new Set(gameState.selectedNotes.sort());
+            const correctSet = new Set(gameState.currentChord.sort());
+            const isCorrect = selectedSet.size === correctSet.size && [...selectedSet].every(note => correctSet.has(note));
+            const feedback = document.getElementById('feedback');
+            const buttons = document.querySelectorAll('.key-button');
+            buttons.forEach(btn => btn.disabled = true);
+            if (isCorrect) {
+                gameState.correctCount++;
+                gameState.noteStats[gameState.currentNote].correct++;
+                gameState.currentChord.forEach(note => {
+                    buttons.forEach(btn => { if (btn.dataset.note === note) btn.classList.add('correct'); });
+                });
+                feedback.textContent = `✨ せいかい！（根音：${gameState.currentNote}）`;
+                feedback.className = 'feedback correct-feedback';
+                playSuccessSound();
+            } else {
+                gameState.incorrectCount++;
+                gameState.noteStats[gameState.currentNote].incorrect++;
+                gameState.currentChord.forEach(note => {
+                    buttons.forEach(btn => { if (btn.dataset.note === note) btn.classList.add('correct'); });
+                });
+                gameState.selectedNotes.forEach(note => {
+                    if (!gameState.currentChord.includes(note)) {
+                        buttons.forEach(btn => { if (btn.dataset.note === note) btn.classList.add('incorrect'); });
+                    }
+                });
+                feedback.textContent = `❌ ざんねん。正解は「${gameState.currentChord.join(' ')}」でした`;
+                feedback.className = 'feedback incorrect-feedback';
+                playFailureSound();
+            }
+            updateScore();
+            updateKeyStats();
+            updateStatsDisplay();
+            setTimeout(() => {
+                buttons.forEach(btn => { btn.disabled = false; btn.classList.remove('correct', 'incorrect', 'selected'); });
+                gameState.currentNote = null;
+                gameState.currentChord = null;
+                clearSelection();
+                playRandomNote();
+            }, 2000);
         }
         function playChord(chordNotes, duration = 1.5) {
             try {
@@ -308,42 +430,6 @@
                 });
                 gainNode.gain.setValueAtTime(0.3, now);
             } catch (e) {}
-        }
-        function guessNote(guessedNote) {
-            if (gameState.isPlaying || !gameState.currentNote) return;
-            gameState.isWaiting = false;
-            const feedback = document.getElementById('feedback');
-            const buttons = document.querySelectorAll('.key-button');
-            buttons.forEach(btn => btn.disabled = true);
-            const isCorrect = guessedNote === gameState.currentNote;
-            if (isCorrect) {
-                gameState.correctCount++;
-                gameState.noteStats[gameState.currentNote].correct++;
-                buttons.forEach(btn => { if (btn.dataset.note === gameState.currentNote) btn.classList.add('correct'); });
-                const displayText = gameState.difficulty === 'hard' ? `✨ せいかい！（根音：${gameState.currentNote}）` : '✨ せいかい！';
-                feedback.textContent = displayText;
-                feedback.className = 'feedback correct-feedback';
-                playSuccessSound();
-            } else {
-                gameState.incorrectCount++;
-                gameState.noteStats[gameState.currentNote].incorrect++;
-                buttons.forEach(btn => {
-                    if (btn.dataset.note === gameState.currentNote) btn.classList.add('correct');
-                    else if (btn.dataset.note === guessedNote) btn.classList.add('incorrect');
-                });
-                feedback.textContent = `❌ ざんねん。正解は「${gameState.currentNote}」でした`;
-                feedback.className = 'feedback incorrect-feedback';
-                playFailureSound();
-            }
-            updateScore();
-            updateKeyStats();
-            updateStatsDisplay();
-            setTimeout(() => {
-                buttons.forEach(btn => { btn.disabled = false; btn.classList.remove('correct', 'incorrect'); });
-                gameState.currentNote = null;
-                gameState.currentChord = null;
-                playRandomNote();
-            }, 2000);
         }
         function updateScore() {
             document.getElementById('correctCount').textContent = gameState.correctCount;
