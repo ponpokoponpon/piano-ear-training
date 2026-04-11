@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎹 ピアノ耳練習アプリ</title>
+    <title>🎹 ドレミ音当てゲーム</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
@@ -23,80 +23,74 @@
 
         .container {
             background: white;
-            border-radius: 20px;
+            border-radius: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 30px;
-            max-width: 600px;
+            padding: 40px 20px;
+            max-width: 500px;
             width: 100%;
+            text-align: center;
         }
 
         h1 {
-            text-align: center;
+            font-size: 36px;
             color: #333;
             margin-bottom: 10px;
-            font-size: 28px;
         }
 
         .subtitle {
-            text-align: center;
+            font-size: 18px;
             color: #666;
             margin-bottom: 30px;
-            font-size: 14px;
         }
 
         .score-section {
             background: #f0f4ff;
-            border-radius: 10px;
+            border-radius: 15px;
             padding: 20px;
             margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .score-row {
             display: flex;
             justify-content: space-around;
-            gap: 20px;
+            align-items: center;
         }
 
         .score-item {
-            flex: 1;
+            text-align: center;
         }
 
         .score-label {
-            font-size: 12px;
-            color: #999;
-            text-transform: uppercase;
+            font-size: 14px;
+            color: #666;
             font-weight: bold;
             margin-bottom: 5px;
         }
 
         .score-value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: bold;
             color: #667eea;
         }
 
         .game-section {
-            text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
 
         .play-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8c42 100%);
             color: white;
             border: none;
-            border-radius: 15px;
-            padding: 16px 40px;
-            font-size: 16px;
+            border-radius: 20px;
+            padding: 18px 50px;
+            font-size: 20px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
         }
 
         .play-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
         }
 
         .play-button:active:not(:disabled) {
@@ -108,187 +102,176 @@
             cursor: not-allowed;
         }
 
-        .piano-keys {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .key-button {
-            background: #f5f5f5;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 14px;
+        .feedback {
+            min-height: 50px;
+            font-size: 24px;
             font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: #333;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .key-button:hover {
-            background: #e8e8e8;
-            border-color: #667eea;
+        .feedback.correct-feedback {
+            color: #4caf50;
+            animation: correctBounce 0.6s ease;
         }
 
-        .key-button.correct {
-            background: #4caf50;
-            color: white;
-            border-color: #45a049;
-            animation: correctPulse 0.6s ease;
-        }
-
-        .key-button.incorrect {
-            background: #f44336;
-            color: white;
-            border-color: #da190b;
+        .feedback.incorrect-feedback {
+            color: #f44336;
             animation: incorrectShake 0.5s ease;
         }
 
-        @keyframes correctPulse {
+        .feedback.waiting {
+            color: #999;
+        }
+
+        @keyframes correctBounce {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
 
         @keyframes incorrectShake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
 
-        .settings {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 20px;
+        .piano-keys {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
             margin-bottom: 20px;
         }
 
-        .setting-group {
-            margin-bottom: 15px;
-        }
-
-        .setting-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .setting-label {
-            font-size: 13px;
+        .key-button {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
             font-weight: bold;
-            color: #666;
-            margin-bottom: 8px;
-            display: block;
-        }
-
-        .setting-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .setting-button {
-            background: white;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 12px;
             cursor: pointer;
             transition: all 0.2s ease;
-            flex: 1;
-            min-width: 60px;
-        }
-
-        .setting-button.active {
-            background: #667eea;
             color: white;
-            border-color: #667eea;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        .feedback {
-            min-height: 40px;
-            text-align: center;
-            margin-top: 20px;
-            font-weight: bold;
-            font-size: 16px;
+        .key-button:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .feedback.correct-feedback {
-            color: #4caf50;
+        .key-button:active:not(:disabled) {
+            transform: translateY(-2px);
         }
 
-        .feedback.incorrect-feedback {
-            color: #f44336;
+        .key-button.do {
+            background: linear-gradient(135deg, #ff6b6b, #ff5252);
         }
 
-        .feedback.waiting {
-            color: #999;
-            font-size: 14px;
+        .key-button.re {
+            background: linear-gradient(135deg, #ff8c42, #ff7043);
         }
 
-        @media (max-width: 600px) {
+        .key-button.mi {
+            background: linear-gradient(135deg, #ffd93d, #ffb74d);
+        }
+
+        .key-button.fa {
+            background: linear-gradient(135deg, #6bcf7f, #4caf50);
+        }
+
+        .key-button.so {
+            background: linear-gradient(135deg, #4ecdc4, #26c6da);
+        }
+
+        .key-button.ra {
+            background: linear-gradient(135deg, #667eea, #5c6bc0);
+        }
+
+        .key-button.si {
+            background: linear-gradient(135deg, #d946ef, #c2185b);
+        }
+
+        .key-button.correct {
+            animation: correctPulse 0.6s ease;
+        }
+
+        .key-button.incorrect {
+            animation: incorrectShake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .key-name {
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        @media (max-width: 480px) {
             .container {
-                padding: 20px;
+                padding: 30px 15px;
             }
 
             h1 {
-                font-size: 24px;
+                font-size: 28px;
             }
 
-            .piano-keys {
-                grid-template-columns: repeat(3, 1fr);
+            .subtitle {
+                font-size: 16px;
             }
 
             .play-button {
-                padding: 14px 30px;
-                font-size: 15px;
+                padding: 16px 40px;
+                font-size: 18px;
+            }
+
+            .score-section {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .piano-keys {
+                gap: 6px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎹 ピアノ耳練習</h1>
-        <p class="subtitle">聞こえた音の音程を当てよう</p>
+        <h1>🎹 ドレミ音当てゲーム</h1>
+        <p class="subtitle">聞こえた音を当ててね！</p>
 
         <div class="score-section">
-            <div class="score-row">
-                <div class="score-item">
-                    <div class="score-label">正解</div>
-                    <div class="score-value" id="correctCount">0</div>
-                </div>
-                <div class="score-item">
-                    <div class="score-label">不正解</div>
-                    <div class="score-value" id="incorrectCount">0</div>
-                </div>
-                <div class="score-item">
-                    <div class="score-label">正答率</div>
-                    <div class="score-value" id="accuracy">-</div>
-                </div>
+            <div class="score-item">
+                <div class="score-label">正解 ✨</div>
+                <div class="score-value" id="correctCount">0</div>
             </div>
-        </div>
-
-        <div class="settings">
-            <div class="setting-group">
-                <label class="setting-label">難易度</label>
-                <div class="setting-buttons">
-                    <button class="setting-button active" data-difficulty="easy">初級</button>
-                    <button class="setting-button" data-difficulty="normal">中級</button>
-                    <button class="setting-button" data-difficulty="hard">上級</button>
-                </div>
+            <div class="score-item">
+                <div class="score-label">不正解 ❌</div>
+                <div class="score-value" id="incorrectCount">0</div>
             </div>
         </div>
 
         <div class="game-section">
-            <button class="play-button" id="playButton">♪ 音を聞く</button>
-            <div class="feedback waiting" id="feedback">準備完了！音を聞いて当ててね</div>
+            <button class="play-button" id="playButton">♪ 音を聞く ♪</button>
+            <div class="feedback waiting" id="feedback">準備完了！音を聞いてね</div>
         </div>
 
         <div class="piano-keys" id="pianoKeys"></div>
     </div>
 
     <script>
-        // Web Audio API のセットアップ
+        // Web Audio API セットアップ
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
         // ゲーム状態
@@ -296,32 +279,22 @@
             currentNote: null,
             correctCount: 0,
             incorrectCount: 0,
-            difficulty: 'easy',
             isPlaying: false,
             isWaiting: false
         };
 
-        // 音階定義
+        // ドレミファソラシドの周波数
         const notes = {
-            'C': 261.63,
-            'C#': 277.18,
-            'D': 293.66,
-            'D#': 311.13,
-            'E': 329.63,
-            'F': 349.23,
-            'F#': 369.99,
-            'G': 392.00,
-            'G#': 415.30,
-            'A': 440.00,
-            'A#': 466.16,
-            'B': 493.88
+            'ド': { freq: 261.63, class: 'do', index: 0 },
+            'レ': { freq: 293.66, class: 're', index: 1 },
+            'ミ': { freq: 329.63, class: 'mi', index: 2 },
+            'ファ': { freq: 349.23, class: 'fa', index: 3 },
+            'ソ': { freq: 392.00, class: 'so', index: 4 },
+            'ラ': { freq: 440.00, class: 'ra', index: 5 },
+            'シ': { freq: 493.88, class: 'si', index: 6 }
         };
 
-        const difficulties = {
-            easy: ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
-            normal: Object.keys(notes),
-            hard: Object.keys(notes)
-        };
+        const noteNames = ['ド', 'レ', 'ミ', 'ファ', 'ソ', 'ラ', 'シ'];
 
         // 初期化
         function init() {
@@ -335,13 +308,13 @@
             const container = document.getElementById('pianoKeys');
             container.innerHTML = '';
 
-            const currentDifficulty = difficulties[gameState.difficulty];
-            currentDifficulty.forEach(note => {
+            noteNames.forEach(name => {
+                const noteInfo = notes[name];
                 const button = document.createElement('button');
-                button.className = 'key-button';
-                button.textContent = note;
-                button.dataset.note = note;
-                button.addEventListener('click', () => guessNote(note));
+                button.className = `key-button ${noteInfo.class}`;
+                button.innerHTML = `<span>${name}</span><span class="key-name"></span>`;
+                button.dataset.note = name;
+                button.addEventListener('click', () => guessNote(name));
                 container.appendChild(button);
             });
         }
@@ -349,15 +322,6 @@
         // イベントリスナー設定
         function setupEventListeners() {
             document.getElementById('playButton').addEventListener('click', playRandomNote);
-
-            document.querySelectorAll('[data-difficulty]').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    document.querySelectorAll('[data-difficulty]').forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-                    gameState.difficulty = e.target.dataset.difficulty;
-                    createPianoKeys();
-                });
-            });
         }
 
         // ランダムな音を再生
@@ -370,11 +334,10 @@
             document.getElementById('feedback').textContent = '♪ 音を再生中...';
             document.getElementById('feedback').className = 'feedback waiting';
 
-            const currentDifficulty = difficulties[gameState.difficulty];
-            const randomNote = currentDifficulty[Math.floor(Math.random() * currentDifficulty.length)];
+            const randomNote = noteNames[Math.floor(Math.random() * noteNames.length)];
             gameState.currentNote = randomNote;
 
-            playSound(notes[randomNote], 1.0);
+            playSound(notes[randomNote].freq, 1.0);
         }
 
         // 音を再生
@@ -406,7 +369,7 @@
                     gameState.isPlaying = false;
                     document.getElementById('playButton').disabled = false;
                     if (!gameState.isWaiting) {
-                        document.getElementById('feedback').textContent = '当ててみよう!';
+                        document.getElementById('feedback').textContent = '当ててみてね！';
                         document.getElementById('feedback').className = 'feedback waiting';
                     }
                 }, duration * 1000);
@@ -436,9 +399,9 @@
                         btn.classList.add('correct');
                     }
                 });
-                feedback.textContent = '✨ 正解！';
+                feedback.textContent = '✨ せいかい！';
                 feedback.className = 'feedback correct-feedback';
-                playSound(notes[guessedNote], 0.5);
+                playSound(notes[guessedNote].freq, 0.5);
             } else {
                 // 不正解
                 gameState.incorrectCount++;
@@ -449,7 +412,7 @@
                         btn.classList.add('incorrect');
                     }
                 });
-                feedback.textContent = `❌ 不正解。正解は ${gameState.currentNote} でした`;
+                feedback.textContent = `❌ ざんねん。正解は「${gameState.currentNote}」でした`;
                 feedback.className = 'feedback incorrect-feedback';
             }
 
@@ -469,12 +432,6 @@
         function updateScore() {
             document.getElementById('correctCount').textContent = gameState.correctCount;
             document.getElementById('incorrectCount').textContent = gameState.incorrectCount;
-
-            const total = gameState.correctCount + gameState.incorrectCount;
-            if (total > 0) {
-                const accuracy = Math.round((gameState.correctCount / total) * 100);
-                document.getElementById('accuracy').textContent = accuracy + '%';
-            }
         }
 
         // ゲーム開始
