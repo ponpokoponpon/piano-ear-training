@@ -94,7 +94,7 @@
         </div>
         <div class="piano-icon">🎹</div>
         <h1>ドレミ音当てゲーム</h1>
-        <p class="subtitle" id="subtitle">聞こえた音を当ってね！</p>
+        <p class="subtitle" id="subtitle">聞こえた音を当ててね！</p>
         <div class="difficulty-section">
             <div class="difficulty-label">難易度を選択</div>
             <div class="difficulty-buttons">
@@ -247,7 +247,7 @@
             btn.textContent = gameState.currentNote ? '↩ もう一度聞く' : '♪ 音を聞く ♪';
         }
         function updateSubtitle() {
-            const subtitles = { easy: '聞こえた音を当ってね！', normal: '聞こえた音を当ってね！', hard: 'メジャーコードの3つの音を選んでね！' };
+            const subtitles = { easy: '聞こえた音を当ててね！', normal: '聞こえた音を当ててね！', hard: 'メジャーコードの3つの音を選んでね！' };
             document.getElementById('subtitle').textContent = subtitles[gameState.difficulty];
         }
         function createPianoKeys() {
@@ -330,7 +330,7 @@
             if (gameState.isPlaying) return;
             gameState.isPlaying = true;
             document.getElementById('playButton').disabled = true;
-            document.getElementById('feedback').textContent = '♪ 音を再生中...';
+            document.getElementById('feedback').textContent = '♪ 再生中...';
             document.getElementById('feedback').className = 'feedback waiting';
             const currentNotes = gameState.difficulty === 'hard' ? allNotes : difficulties[gameState.difficulty];
             if (!gameState.currentNote) gameState.currentNote = currentNotes[Math.floor(Math.random() * currentNotes.length)];
@@ -361,7 +361,7 @@
                 gameState.correctCount++;
                 gameState.noteStats[gameState.currentNote].correct++;
                 buttons.forEach(btn => { if (btn.dataset.note === gameState.currentNote) btn.classList.add('correct'); });
-                feedback.textContent = '✨ せいかい！';
+                feedback.textContent = '✨ 正解！';
                 feedback.className = 'feedback correct-feedback';
                 playSuccessSound();
             } else {
@@ -371,7 +371,7 @@
                     if (btn.dataset.note === gameState.currentNote) btn.classList.add('correct');
                     else if (btn.dataset.note === guessedNote) btn.classList.add('incorrect');
                 });
-                feedback.textContent = `❌ ざんねん。正解は「${gameState.currentNote}」でした`;
+                feedback.textContent = `❌ ざんねん！正解は「${gameState.currentNote}」だよ`;
                 feedback.className = 'feedback incorrect-feedback';
                 playFailureSound();
             }
@@ -393,7 +393,7 @@
                 gameState.currentChord.forEach(note => {
                     buttons.forEach(btn => { if (btn.dataset.note === note) btn.classList.add('correct'); });
                 });
-                feedback.textContent = `✨ せいかい！（根音：${gameState.currentNote}）`;
+                feedback.textContent = `✨ 正解！（根音：${gameState.currentNote}）`;
                 feedback.className = 'feedback correct-feedback';
                 playSuccessSound();
             } else {
@@ -407,7 +407,7 @@
                         buttons.forEach(btn => { if (btn.dataset.note === note) btn.classList.add('incorrect'); });
                     }
                 });
-                feedback.textContent = `❌ ざんねん。正解は「${gameState.currentChord.join(' ')}」でした`;
+                feedback.textContent = `❌ ざんねん！正解は「${gameState.currentChord.join(' ')}」だよ`;
                 feedback.className = 'feedback incorrect-feedback';
                 playFailureSound();
             }
