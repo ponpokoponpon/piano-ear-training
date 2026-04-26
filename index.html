@@ -65,7 +65,7 @@
         .submit-button:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(76,175,80,0.5); }
         .submit-button:active:not(:disabled) { transform: translateY(0); }
         .submit-button:disabled { opacity: 0.6; cursor: not-allowed; }
-        .key-stats { font-size: 10px; margin-top: 2px; opacity: 0.9; font-weight: normal; }
+        .key-enharmonic { font-size: 9px; opacity: 0.85; font-weight: normal; margin-top: 1px; }
         #selectionCount { font-size: 14px; color: #666; margin-top: 10px; min-height: 20px; }
         .next-button { background: linear-gradient(135deg, #9c7e6f 0%, #8b6f47 100%); color: white; border: none; border-radius: 20px; padding: 14px 40px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; box-shadow: 0 5px 15px rgba(156,126,111,0.3); display: none; }
         .next-button:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(156,126,111,0.5); }
@@ -149,6 +149,7 @@
             hard: ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ']
         };
         const allNotes = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
+        const enharmonic = { 'ド#': 'レ♭', 'レ#': 'ミ♭', 'ファ#': 'ソ♭', 'ソ#': 'ラ♭', 'ラ#': 'シ♭' };
         function getMajorChord(rootNote) {
             const rootIndex = allNotes.indexOf(rootNote);
             const thirdNote = allNotes[(rootIndex + 4) % 12];
@@ -276,7 +277,8 @@
                 const noteInfo = notes[name];
                 const button = document.createElement('button');
                 button.className = `key-button ${noteInfo.class}`;
-                button.innerHTML = `<span>${name}</span><span class="key-stats" data-note-stat="${name}"></span>`;
+                const sub = enharmonic[name] ? `<span class="key-enharmonic">${enharmonic[name]}</span>` : '';
+                button.innerHTML = `<span>${name}</span>${sub}<span class="key-stats" data-note-stat="${name}"></span>`;
                 button.dataset.note = name;
                 button.addEventListener('click', () => toggleNoteSelection(name));
                 container.appendChild(button);
