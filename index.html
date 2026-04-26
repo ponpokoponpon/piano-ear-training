@@ -185,11 +185,12 @@
                 const total = gameState.correctCount + gameState.incorrectCount;
                 const acc = total > 0 ? Math.round(gameState.correctCount / total * 100) : 0;
                 const diff = { easy: '初級', normal: '中級', hard: '上級' }[gameState.difficulty];
+                const url = 'https://ponpokoponpon.github.io/piano-ear-training/';
                 const text = `🎹 ドレミ音当てゲーム【${diff}】\n✨ 正解: ${gameState.correctCount}問\n📊 正答率: ${acc}%\n#ピアノ耳トレ #Waltz`;
                 if (navigator.share) {
-                    navigator.share({ text });
+                    navigator.share({ text, url });
                 } else {
-                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
                 }
             });
             document.getElementById('resetStats').addEventListener('click', () => {
