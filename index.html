@@ -127,7 +127,7 @@
     <script>
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const HARMONICS = [{ ratio: 1, volume: 0.4 }, { ratio: 2, volume: 0.2 }, { ratio: 3, volume: 0.1 }, { ratio: 4, volume: 0.08 }];
-        let gameState = { currentNote: null, currentChord: null, selectedNotes: [], correctCount: 0, incorrectCount: 0, isPlaying: false, noteStats: {}, difficulty: 'easy' };
+        let gameState = { currentNote: null, currentChord: null, selectedNotes: [], correctCount: 0, incorrectCount: 0, isPlaying: false, noteStats: {}, difficulty: 'easy', deck: [] };
         let pendingTimeout = null;
         const notes = {
             'ド': { freq: 261.63, class: 'do' },
@@ -150,6 +150,18 @@
         };
         const allNotes = ['ド', 'ド#', 'レ', 'レ#', 'ミ', 'ファ', 'ファ#', 'ソ', 'ソ#', 'ラ', 'ラ#', 'シ'];
         const enharmonic = { 'ド#': 'レ♭', 'レ#': 'ミ♭', 'ファ#': 'ソ♭', 'ソ#': 'ラ♭', 'ラ#': 'シ♭' };
+        function shuffleDeck() {
+            const arr = [...getActiveNotes()];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            gameState.deck = arr;
+        }
+        function pickRandomNote() {
+            if (gameState.deck.length === 0) shuffleDeck();
+            return gameState.deck.pop();
+        }
         function getMajorChord(rootNote) {
             const rootIndex = allNotes.indexOf(rootNote);
             const thirdNote = allNotes[(rootIndex + 4) % 12];
@@ -208,6 +220,7 @@
                     document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
                     e.target.classList.add('active');
                     gameState.difficulty = e.target.dataset.difficulty;
+                    gameState.deck = [];
                     gameState.correctCount = 0;
                     gameState.incorrectCount = 0;
                     gameState.selectedNotes = [];
@@ -351,7 +364,7 @@
             document.getElementById('feedback').textContent = '♪ 再生中...';
             document.getElementById('feedback').className = 'feedback waiting';
             const currentNotes = gameState.difficulty === 'hard' ? allNotes : difficulties[gameState.difficulty];
-            if (!gameState.currentNote) gameState.currentNote = currentNotes[Math.floor(Math.random() * currentNotes.length)];
+            if (!gameState.currentNote) gameState.currentNote = pickRandomNote();
             updatePlayButton();
             if (gameState.difficulty === 'hard') {
                 gameState.currentChord = getMajorChord(gameState.currentNote);
